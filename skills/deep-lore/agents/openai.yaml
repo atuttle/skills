@@ -1,0 +1,5 @@
+interface:
+  display_name: "Deep Lore"
+  short_description: "Follow lore sources for explicitly requested research"
+policy:
+  allow_implicit_invocation: false

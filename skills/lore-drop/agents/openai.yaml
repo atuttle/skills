@@ -1,0 +1,3 @@
+interface:
+  display_name: "Lore drop"
+  short_description: "Capture human product knowledge from chat or GitHub"
