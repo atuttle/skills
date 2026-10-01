@@ -19,6 +19,8 @@ GitHub collection, clarification, deduplication, acknowledgment, and PR procedur
 
 ## Capture and update
 
+For GitHub capture, check native reactions on each original `LORE:` source before processing it. An existing `eyes` reaction (👀), regardless of who added it, means that source has already been captured: skip it unless the user explicitly asks to reprocess it. If the helper bundle does not include reactions, retrieve them from GitHub before processing candidates.
+
 1. Find the relevant local entries and pending captures before adding anything. Keep one authoritative entry per subject and scope. Follow the existing layout; start `LORE.md` if none exists.
 2. State the knowledge concretely and make it understandable on its own. Include rationale when supplied, scope from reliable context, and source/date. A missing rationale alone need not block a useful observation; an unidentified behavior or scope can.
 3. Update an existing entry when new information changes the same subject. Put the latest explanation first and retain at most a one sentence summary per previous version in history. Add another supporting source without inventing a new historical version when the meaning is unchanged.
