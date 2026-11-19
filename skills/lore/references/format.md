@@ -5,16 +5,16 @@ Start at the repository root's `LORE.md`. It either contains entries or indexes 
 An entry has a descriptive heading, its current explanation, what it applies to, and source/date. For example:
 
 ```markdown
-## UMD affiliation updates
+## <customer> affiliation updates
 
-UMD affiliation values must be changed in the CRM because the nightly import
+<customer> affiliation values must be changed in the CRM because the nightly import
 overwrites platform changes.
 
-**Applies to:** UMD affiliation imports; relevant import script paths.
+**Applies to:** <customer> affiliation imports; relevant import script paths.
 **Source:** [PR discussion](https://github.com/ORG/REPO/pull/123#issuecomment-456) (2026-10-01).
 ```
 
-This example explains UMD affiliation imports. It does not establish how another customer's imports behave. Keep customer names, settings, and component names in the answer when they limit the explanation.
+This example explains `<customer>` affiliation imports. It does not establish how another customer's imports behave. Keep customer names, settings, and component names in the answer when they limit the explanation.
 
 An optional `History` section summarizes earlier versions, one sentence each. The main explanation is current; those earlier versions describe what used to be true. Include history when it helps answer the question.
 

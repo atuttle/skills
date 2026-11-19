@@ -28,12 +28,12 @@ Use a stable, descriptive heading, a self-contained explanation, scope, and sour
 Example (illustrative, not a claim about an actual customer):
 
 ```markdown
-## UMD affiliation updates
+## <customer> affiliation updates
 
-UMD affiliation values must be changed in the CRM because the nightly import
+<customer> affiliation values must be changed in the CRM because the nightly import
 overwrites platform changes. This is an integration constraint.
 
-**Applies to:** UMD affiliation imports; relevant import script paths.
+**Applies to:** <customer> affiliation imports; relevant import script paths.
 **Source:** [PR discussion](https://github.com/ORG/REPO/pull/123#issuecomment-456) (2026-10-01).
 ```
 

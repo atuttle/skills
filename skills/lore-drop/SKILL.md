@@ -13,7 +13,7 @@ Capture human knowledge so future readers can understand it without reopening th
 
 - **Conversation:** A substantive `LORE:` statement supplied by the user authorizes capturing it in the current requested repository. Use surrounding discussion to establish the explanation and scope.
 - **GitHub target:** A PR URL or `<org>/<repo>#<number>` captures all `LORE:` tagged lore across that PR; a comment URL focuses on the referenced discussion and its follow-ups.
-- **GitHub scan:** Scan all currently open PRs plus PRs merged during the provided date range; by default, the previous complete calendar day. Make one lore PR per repository/scan when there are useful documentation changes.
+- **GitHub scan:** Scan all currently open PRs plus all PRs closed during the provided date range, whether merged or closed without merging; by default, the previous complete calendar day. Make one lore PR per repository/scan when there are useful documentation changes.
 
 GitHub collection, clarification, deduplication, acknowledgment, and PR procedures are in [github.md](references/github.md). Use the deterministic helper for GitHub pagination and mutations; the model supplies the interpretation and concrete questions. Read that reference before GitHub capture.
 
@@ -22,9 +22,11 @@ GitHub collection, clarification, deduplication, acknowledgment, and PR procedur
 For GitHub capture, check native reactions on each original `LORE:` source before processing it. An existing `eyes` reaction (👀), regardless of who added it, means that source has already been captured: skip it unless the user explicitly asks to reprocess it. If the helper bundle does not include reactions, retrieve them from GitHub before processing candidates.
 
 1. Find the relevant local entries and pending captures before adding anything. Keep one authoritative entry per subject and scope. Follow the existing layout; start `LORE.md` if none exists.
-2. State the knowledge concretely and make it understandable on its own. Include rationale when supplied, scope from reliable context, and source/date. A missing rationale alone need not block a useful observation; an unidentified behavior or scope can.
+2. State the knowledge concretely and make it understandable on its own. Write in simple language, avoid jargon, and use concrete examples where necessary. You're trying to be helpful, not win a Pulitzer. Include rationale when supplied, scope from reliable context, and source/date. A missing rationale alone need not block a useful observation; an unidentified behavior or scope can.
 3. Update an existing entry when new information changes the same subject. Put the latest explanation first and retain at most a one sentence summary per previous version in history. Add another supporting source without inventing a new historical version when the meaning is unchanged.
 4. If information is insufficient, ask specific questions using actual customer names, fields, behaviors, or examples from the discussion. In a live conversation, ask the user. On GitHub, reply to the source thread as the reference describes. A human reply is additional evidence, not automatic completion: evaluate whether it is now enough.
 5. For local capture, summarize the file/entry changed. For GitHub capture, publish the lore PR first, then add a native GitHub `eyes` reaction (👀) to each original `LORE:` source actually captured. Do not post a success comment or resolve code-review threads.
 
 Keep changes focused on lore files and their index. Honor the repository's contribution instructions and PR template. Preserve user edits.
+
+In T3 Code, after a successful lore-drop run with no findings (for example, no lore PRs were created or updated), settle the current thread using `t3_thread_organize` with `action: "settle"` before the final reply. Failed or incomplete runs are not no-findings results.

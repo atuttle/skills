@@ -5,7 +5,7 @@
 /*
 ## API references
 
-- [List pull requests](https://docs.github.com/en/rest/pulls/pulls#list-pull-requests) and [merged-date search](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-a-pull-request-was-merged).
+- [List pull requests](https://docs.github.com/en/rest/pulls/pulls#list-pull-requests) and [close-date search](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-closed).
 - [Search limits](https://docs.github.com/en/rest/search/search#about-search) and [pagination](https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api).
 - [Conversation comments](https://docs.github.com/en/rest/issues/comments), [inline review comments/replies](https://docs.github.com/en/rest/pulls/comments), and [review summaries](https://docs.github.com/en/rest/pulls/reviews).
 - [Native REST reactions](https://docs.github.com/en/rest/reactions/reactions), [review objects](https://docs.github.com/en/graphql/reference/pulls#pullrequestreview), and [GraphQL reactions](https://docs.github.com/en/graphql/reference/reactions).
@@ -105,7 +105,7 @@ function startOfDay(day, formatter) {
   return result;
 }
 
-export function mergedWindow(days = 1, anchor, zone, now = new Date()) {
+export function closedWindow(days = 1, anchor, zone, now = new Date()) {
   if (!Number.isSafeInteger(days) || days < 1) throw new LoreError('--days must be a positive integer.');
   const formatter = dateFormatter(zone);
   const endDay = anchor ?? calendarDate(now, formatter);
@@ -150,18 +150,18 @@ export class GitHub {
   }
 }
 
-export function mergedPRs(api, repo, start, end, budget = { remaining: 64 }) {
-  if (budget.remaining-- <= 0) throw new LoreError('Complete merged-date search exceeded 64 split queries; use a shorter period or explicit PR targets.');
-  const query = `repo:${repo} is:pr is:merged merged:${utcText(start)}..${utcText(end)}`;
+export function closedPRs(api, repo, start, end, budget = { remaining: 64 }) {
+  if (budget.remaining-- <= 0) throw new LoreError('Complete close-date search exceeded 64 split queries; use a shorter period or explicit PR targets.');
+  const query = `repo:${repo} is:pr is:closed closed:${utcText(start)}..${utcText(end)}`;
   const params = { q: query, per_page: 100, page: 1 };
   const first = api.request('search/issues', { params });
   if (!Number.isSafeInteger(first?.total_count) || first.total_count < 0 || !Array.isArray(first.items)) throw new LoreError('Invalid PR search response.');
   const count = first.total_count;
   if (count > 1000 || first.incomplete_results) {
     const seconds = Math.floor((end.getTime() - start.getTime()) / 1000);
-    if (seconds < 1) throw new LoreError('Merged PR search is incomplete even for a one-second interval; scan aborted.');
+    if (seconds < 1) throw new LoreError('Closed PR search is incomplete even for a one-second interval; scan aborted.');
     const midpoint = new Date(start.getTime() + Math.floor(seconds / 2) * 1000);
-    return [...mergedPRs(api, repo, start, midpoint, budget), ...mergedPRs(api, repo, new Date(midpoint.getTime() + 1000), end, budget)];
+    return [...closedPRs(api, repo, start, midpoint, budget), ...closedPRs(api, repo, new Date(midpoint.getTime() + 1000), end, budget)];
   }
   const rows = [...first.items];
   for (let page = 2; page <= Math.ceil(count / 100); page++) {
@@ -238,7 +238,7 @@ export function fetchPR(api, repo, number, raw) {
   raw ??= api.request(`${root}/pulls/${number}`);
   if (raw.number !== number || !raw.head) throw new LoreError('Target is not a pull request.');
   const pr = {
-    number, url: raw.html_url, state: raw.state, merged_at: raw.merged_at ?? null, head_ref: raw.head.ref,
+    number, url: raw.html_url, state: raw.state, closed_at: raw.closed_at ?? null, merged_at: raw.merged_at ?? null, head_ref: raw.head.ref,
     context: { title: raw.title ?? null, body: raw.body ?? '', files: [] },
     conversation: api.pages(`${root}/issues/${number}/comments`).map(row => normalized('issue_comment', row, repo, number)),
     inline: api.pages(`${root}/pulls/${number}/comments`).map(row => normalized('review_comment', row, repo, number)),
@@ -259,7 +259,7 @@ export function fetchPR(api, repo, number, raw) {
 
 function makeBundle(api, repo, selected, { target = null, window = null, openRows = [] } = {}) {
   const metadata = api.request(`repos/${repo}`);
-  const bundle = { version: 1, repo, default_branch: metadata.default_branch, collected_at: utcText(new Date()), target, merged_window: window, pending_captures: [], prs: [] };
+  const bundle = { version: 1, repo, default_branch: metadata.default_branch, collected_at: utcText(new Date()), target, closed_window: window, pending_captures: [], prs: [] };
   for (const row of openRows) {
     if (!row.head?.ref?.startsWith('lore-drop/')) continue;
     for (const url of sourceURLs(row.body ?? '')) bundle.pending_captures.push({ url, lore_pr: row.html_url });
@@ -276,10 +276,10 @@ function makeBundle(api, repo, selected, { target = null, window = null, openRow
 
 export function scan(api, repo, { days = 1, anchor, zone } = {}) {
   validateRepo(repo);
-  const [start, end] = mergedWindow(days, anchor, zone);
+  const [start, end] = closedWindow(days, anchor, zone);
   const opened = api.pages(`repos/${repo}/pulls`, { state: 'open' });
   const selected = new Map(opened.map(row => [row.number, row]));
-  for (const row of mergedPRs(api, repo, start, end)) if (!selected.has(row.number)) selected.set(row.number, undefined);
+  for (const row of closedPRs(api, repo, start, end)) if (!selected.has(row.number)) selected.set(row.number, undefined);
   return makeBundle(api, repo, selected, { window: { start: utcText(start), end: utcText(end), timezone: zone ?? 'system-local' }, openRows: opened });
 }
 
@@ -313,7 +313,7 @@ export function inventory(bundle) {
       sources.push({ pr: pr.number, url, author: source.author, pending_lore_prs: pending });
     }
   }
-  return { repo: bundle.repo, target: bundle.target, selected_comment: selectedComment, merged_window: bundle.merged_window, sources };
+  return { repo: bundle.repo, target: bundle.target, selected_comment: selectedComment, closed_window: bundle.closed_window, sources };
 }
 
 export function show(bundle, sourceURL) {
